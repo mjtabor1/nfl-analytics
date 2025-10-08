@@ -1,3 +1,4 @@
+import click
 from flask import Flask
 from config import Config
 from extensions import db, migrate, jwt, cors
@@ -23,6 +24,13 @@ def create_app():
     import controllers.nfl.models
     from flask_migrate import Migrate
     Migrate(app, db)
+
+    @app.cli.command("sleeper-import")
+    @click.option("--limit", type=int, default=None, help="Limit number of players to import")
+    def sleeper_import(limit):
+        from controllers.nfl.import_sleeper import import_players_from_sleeper
+        result = import_players_from_sleeper(limit=limit)
+        click.echo(f"Imported {result['upserted_players']} players and {result['upserted_teams']} teams.")
 
     @app.get("/api/healthz")
     def health():
